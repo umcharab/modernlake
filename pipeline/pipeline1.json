@@ -43,10 +43,34 @@
 						"value": "@activity('LookupProcessableBlobs').value",
 						"type": "Expression"
 					},
-					"isSequential": true
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Set Blob Path",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": []
+						},
+						{
+							"name": "Set Blob Name",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": []
+						}
+					]
 				}
 			}
 		],
+		"variables": {
+			"blobpath": {
+				"type": "String",
+				"defaultValue": "@{item().Path}"
+			},
+			"blobname": {
+				"type": "String",
+				"defaultValue": "@{item().BlobName}"
+			}
+		},
 		"annotations": []
 	}
 }
