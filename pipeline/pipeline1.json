@@ -49,13 +49,53 @@
 							"name": "Set Blob Path",
 							"type": "SetVariable",
 							"dependsOn": [],
-							"userProperties": []
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "blobpath",
+								"value": {
+									"value": "@activity('LookupProcessableBlobs').output",
+									"type": "Expression"
+								}
+							}
 						},
 						{
 							"name": "Set Blob Name",
 							"type": "SetVariable",
 							"dependsOn": [],
-							"userProperties": []
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "blobname",
+								"value": {
+									"value": "@activity('LookupProcessableBlobs').output",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set Container",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Set Blob Path",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								},
+								{
+									"activity": "Set Blob Name",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "blobpath",
+								"value": {
+									"value": "@activity('LookupProcessableBlobs').output",
+									"type": "Expression"
+								}
+							}
 						}
 					]
 				}
