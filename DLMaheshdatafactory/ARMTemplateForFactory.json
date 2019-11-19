@@ -50,8 +50,93 @@
 							},
 							"firstRowOnly": false
 						}
+					},
+					{
+						"name": "LoopProcesableBlobs",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "LookupProcessableBlobs",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('LookupProcessableBlobs').value",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "Set Blob Path",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "blobpath",
+										"value": {
+											"value": "@{item().Path}",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "Set Blob Name",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "blobname",
+										"value": {
+											"value": "@{item().BlobName}",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "Set Container",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "Set Blob Path",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										},
+										{
+											"activity": "Set Blob Name",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "container",
+										"value": {
+											"value": "@activity('LookupProcessableBlobs').output",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
 					}
 				],
+				"variables": {
+					"blobpath": {
+						"type": "String"
+					},
+					"blobname": {
+						"type": "String"
+					},
+					"container": {
+						"type": "String"
+					}
+				},
 				"annotations": []
 			},
 			"dependsOn": [
