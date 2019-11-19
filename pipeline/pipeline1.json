@@ -90,9 +90,9 @@
 							],
 							"userProperties": [],
 							"typeProperties": {
-								"variableName": "blobpath",
+								"variableName": "container",
 								"value": {
-									"value": "@activity('LookupProcessableBlobs').output",
+									"value": "@substring(item().Path, 0, indexof(item().Path, item().BlobName))",
 									"type": "Expression"
 								}
 							}
