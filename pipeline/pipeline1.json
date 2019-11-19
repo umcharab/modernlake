@@ -25,6 +25,26 @@
 					},
 					"firstRowOnly": false
 				}
+			},
+			{
+				"name": "LoopProcesableBlobs",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "LookupProcessableBlobs",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('LookupProcessableBlobs').value",
+						"type": "Expression"
+					},
+					"isSequential": true
+				}
 			}
 		],
 		"annotations": []
