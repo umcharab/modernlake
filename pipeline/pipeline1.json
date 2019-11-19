@@ -27,7 +27,7 @@
 				}
 			},
 			{
-				"name": "ForEach1",
+				"name": "LoopProcessableBlobs",
 				"type": "ForEach",
 				"dependsOn": [
 					{
