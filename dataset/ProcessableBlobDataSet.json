@@ -1,5 +1,5 @@
 {
-	"name": "AzureSqlTable1",
+	"name": "ProcessableBlobDataSet",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "AzureSqlDatabase1",
