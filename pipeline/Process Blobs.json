@@ -231,22 +231,6 @@
 									"type": "DatasetReference"
 								}
 							]
-						},
-						{
-							"name": "Update Processable Blob Status",
-							"type": "ExecutePipeline",
-							"dependsOn": [
-								{
-									"activity": "Copy data to EDW",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"waitOnCompletion": true
-							}
 						}
 					]
 				}
