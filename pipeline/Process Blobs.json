@@ -96,6 +96,152 @@
 									"type": "Expression"
 								}
 							}
+						},
+						{
+							"name": "Copy data to EDW",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Set Container",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": false,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "SqlDWSink",
+									"allowPolyBase": true,
+									"polyBaseSettings": {
+										"rejectValue": 0,
+										"rejectType": "value",
+										"useTypeDefault": true
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"mappings": [
+										{
+											"sink": {
+												"name": "RecordID",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "Region",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Region",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Plant",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Plant",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "DeviceId",
+												"type": "String"
+											},
+											"sink": {
+												"name": "DeviceId",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "Temperature",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Temperature",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "TemperatureDescription",
+												"type": "String"
+											},
+											"sink": {
+												"name": "TemperatureDescription",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Humidity",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Humidity",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "RecordedTime",
+												"type": "String"
+											},
+											"sink": {
+												"name": "RecordedTime",
+												"type": "DateTime"
+											}
+										}
+									]
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "AzurePreporcessedBlobDataSet",
+									"type": "DatasetReference",
+									"parameters": {
+										"path": {
+											"value": "@variables('container')",
+											"type": "Expression"
+										},
+										"name": {
+											"value": "@variables('blobname')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "AzureSynapseAnalyticsDataset",
+									"type": "DatasetReference"
+								}
+							]
 						}
 					]
 				}
