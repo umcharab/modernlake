@@ -73,7 +73,7 @@
 						"userProperties": [],
 						"typeProperties": {
 							"items": {
-								"value": "@activity('LookupProcessableBlobs').value",
+								"value": "@activity('LookupProcessableBlobs').output.value",
 								"type": "Expression"
 							},
 							"isSequential": true,
