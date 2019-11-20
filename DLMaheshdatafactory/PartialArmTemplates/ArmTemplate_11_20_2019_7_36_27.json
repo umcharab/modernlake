@@ -1,0 +1,271 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "DLMaheshdatafactory"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/Process Blobs')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "LookupProcessableBlobs",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderStoredProcedureName": "[[dbo].[uspGetProcessableBlobs]"
+							},
+							"dataset": {
+								"referenceName": "ProcessableBlobDataSet",
+								"type": "DatasetReference"
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "LoopProcesableBlobs",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "LookupProcessableBlobs",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('LookupProcessableBlobs').value",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "Set Blob Path",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "blobpath",
+										"value": {
+											"value": "@{item().Path}",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "Set Blob Name",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "blobname",
+										"value": {
+											"value": "@{item().BlobName}",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "Set Container",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "Set Blob Path",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										},
+										{
+											"activity": "Set Blob Name",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "container",
+										"value": {
+											"value": "@substring(item().Path, 0, indexof(item().Path, item().BlobName))",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "Copy data to EDW",
+									"type": "Copy",
+									"dependsOn": [
+										{
+											"activity": "Set Container",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "DelimitedTextSource",
+											"storeSettings": {
+												"type": "AzureBlobStorageReadSettings",
+												"recursive": false,
+												"enablePartitionDiscovery": false
+											},
+											"formatSettings": {
+												"type": "DelimitedTextReadSettings"
+											}
+										},
+										"sink": {
+											"type": "SqlDWSink",
+											"allowPolyBase": false
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"mappings": [
+												{
+													"source": {
+														"name": "Region",
+														"type": "String"
+													},
+													"sink": {
+														"name": "Region",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "Plant",
+														"type": "String"
+													},
+													"sink": {
+														"name": "Plant",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "DeviceId",
+														"type": "String"
+													},
+													"sink": {
+														"name": "DeviceId",
+														"type": "Int32"
+													}
+												},
+												{
+													"source": {
+														"name": "Temperature",
+														"type": "String"
+													},
+													"sink": {
+														"name": "Temperature",
+														"type": "Int32"
+													}
+												},
+												{
+													"source": {
+														"name": "TemperatureDescription",
+														"type": "String"
+													},
+													"sink": {
+														"name": "TemperatureDescription",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "Humidity",
+														"type": "String"
+													},
+													"sink": {
+														"name": "Humidity",
+														"type": "Int32"
+													}
+												},
+												{
+													"source": {
+														"name": "RecordedTime",
+														"type": "String"
+													},
+													"sink": {
+														"name": "RecordedTime",
+														"type": "DateTime"
+													}
+												}
+											]
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "AzurePreporcessedBlobDataSet",
+											"type": "DatasetReference",
+											"parameters": {
+												"path": {
+													"value": "@variables('container')",
+													"type": "Expression"
+												},
+												"name": {
+													"value": "@variables('blobname')",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "AzureSynapseAnalyticsDataset",
+											"type": "DatasetReference"
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"variables": {
+					"blobpath": {
+						"type": "String"
+					},
+					"blobname": {
+						"type": "String"
+					},
+					"container": {
+						"type": "String"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		}
+	]
+}

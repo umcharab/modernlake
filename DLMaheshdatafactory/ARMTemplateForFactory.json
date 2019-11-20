@@ -170,13 +170,6 @@
 											"type": "TabularTranslator",
 											"mappings": [
 												{
-													"source": {},
-													"sink": {
-														"name": "RecordID",
-														"type": "Int32"
-													}
-												},
-												{
 													"source": {
 														"name": "Region",
 														"type": "String"
