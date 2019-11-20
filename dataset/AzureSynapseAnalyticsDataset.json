@@ -1,0 +1,55 @@
+{
+	"name": "AzureSynapseAnalyticsDataset",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSynapseAnalyticsConnection",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [
+			{
+				"name": "RecordID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Region",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Plant",
+				"type": "nvarchar"
+			},
+			{
+				"name": "DeviceId",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Temperature",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "TemperatureDescription",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Humidity",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "RecordedTime",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "DeviceData"
+		}
+	}
+}
