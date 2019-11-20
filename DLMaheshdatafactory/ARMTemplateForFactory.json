@@ -265,6 +265,46 @@
 											"parameters": {}
 										}
 									]
+								},
+								{
+									"name": "Update Processable Blob Status",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "Copy data to EDW",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[dbo].[uspUpdateBlobMetadata]",
+										"storedProcedureParameters": {
+											"dlsLocation": {
+												"value": null,
+												"type": "String"
+											},
+											"recordId": {
+												"value": {
+													"value": "@{item().RecordId}",
+													"type": "Expression"
+												},
+												"type": "Int32"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "AzureSqlDatabase1",
+										"type": "LinkedServiceReference"
+									}
 								}
 							]
 						}
@@ -286,7 +326,8 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/ProcessableBlobDataSet')]",
 				"[concat(variables('factoryId'), '/datasets/AzurePreporcessedBlobDataSet')]",
-				"[concat(variables('factoryId'), '/datasets/AzureSynapseAnalyticsDataset')]"
+				"[concat(variables('factoryId'), '/datasets/AzureSynapseAnalyticsDataset')]",
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase1')]"
 			]
 		},
 		{
