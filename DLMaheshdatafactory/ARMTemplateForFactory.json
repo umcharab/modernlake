@@ -7,9 +7,17 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "DLMaheshdatafactory"
 		},
+		"AzurePreProcessedBlobConnection_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzurePreProcessedBlobConnection'"
+		},
 		"AzureSqlDatabase1_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'AzureSqlDatabase1'"
+		},
+		"AzureSynapseAnalyticsConnection_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureSynapseAnalyticsConnection'"
 		},
 		"DLDFKeyVault_properties_typeProperties_baseUrl": {
 			"type": "string",
@@ -21,7 +29,7 @@
 	},
 	"resources": [
 		{
-			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
+			"name": "[concat(parameters('factoryName'), '/Process Blobs')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -44,7 +52,7 @@
 								"sqlReaderStoredProcedureName": "[[dbo].[uspGetProcessableBlobs]"
 							},
 							"dataset": {
-								"referenceName": "AzureSqlTable1",
+								"referenceName": "ProcessableBlobDataSet",
 								"type": "DatasetReference",
 								"parameters": {}
 							},
@@ -117,10 +125,153 @@
 									"typeProperties": {
 										"variableName": "container",
 										"value": {
-											"value": "@activity('LookupProcessableBlobs').output",
+											"value": "@substring(item().Path, 0, indexof(item().Path, item().BlobName))",
 											"type": "Expression"
 										}
 									}
+								},
+								{
+									"name": "Copy data to EDW",
+									"type": "Copy",
+									"dependsOn": [
+										{
+											"activity": "Set Container",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "DelimitedTextSource",
+											"storeSettings": {
+												"type": "AzureBlobStorageReadSettings",
+												"recursive": false,
+												"enablePartitionDiscovery": false
+											},
+											"formatSettings": {
+												"type": "DelimitedTextReadSettings"
+											}
+										},
+										"sink": {
+											"type": "SqlDWSink",
+											"allowPolyBase": false
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"mappings": [
+												{
+													"source": {},
+													"sink": {
+														"name": "RecordID",
+														"type": "Int32"
+													}
+												},
+												{
+													"source": {
+														"name": "Region",
+														"type": "String"
+													},
+													"sink": {
+														"name": "Region",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "Plant",
+														"type": "String"
+													},
+													"sink": {
+														"name": "Plant",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "DeviceId",
+														"type": "String"
+													},
+													"sink": {
+														"name": "DeviceId",
+														"type": "Int32"
+													}
+												},
+												{
+													"source": {
+														"name": "Temperature",
+														"type": "String"
+													},
+													"sink": {
+														"name": "Temperature",
+														"type": "Int32"
+													}
+												},
+												{
+													"source": {
+														"name": "TemperatureDescription",
+														"type": "String"
+													},
+													"sink": {
+														"name": "TemperatureDescription",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "Humidity",
+														"type": "String"
+													},
+													"sink": {
+														"name": "Humidity",
+														"type": "Int32"
+													}
+												},
+												{
+													"source": {
+														"name": "RecordedTime",
+														"type": "String"
+													},
+													"sink": {
+														"name": "RecordedTime",
+														"type": "DateTime"
+													}
+												}
+											]
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "AzurePreporcessedBlobDataSet",
+											"type": "DatasetReference",
+											"parameters": {
+												"path": {
+													"value": "@variables('container')",
+													"type": "Expression"
+												},
+												"name": {
+													"value": "@variables('blobname')",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "AzureSynapseAnalyticsDataset",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									]
 								}
 							]
 						}
@@ -140,11 +291,55 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/AzureSqlTable1')]"
+				"[concat(variables('factoryId'), '/datasets/ProcessableBlobDataSet')]",
+				"[concat(variables('factoryId'), '/datasets/AzurePreporcessedBlobDataSet')]",
+				"[concat(variables('factoryId'), '/datasets/AzureSynapseAnalyticsDataset')]"
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/AzureSqlTable1')]",
+			"name": "[concat(parameters('factoryName'), '/AzurePreporcessedBlobDataSet')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzurePreProcessedBlobConnection",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"path": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().name",
+							"type": "Expression"
+						},
+						"container": {
+							"value": "@dataset().path",
+							"type": "Expression"
+						}
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzurePreProcessedBlobConnection')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ProcessableBlobDataSet')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -228,6 +423,19 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/AzurePreProcessedBlobConnection')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('AzurePreProcessedBlobConnection_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/AzureSqlDatabase1')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -262,6 +470,89 @@
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSynapseAnalyticsConnection')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureSynapseAnalyticsConnection_connectionString')]",
+					"password": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "DLDFKeyVault",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "mahesh"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/DLDFKeyVault')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSynapseAnalyticsDataset')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSynapseAnalyticsConnection",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [
+					{
+						"name": "RecordID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Region",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Plant",
+						"type": "nvarchar"
+					},
+					{
+						"name": "DeviceId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Temperature",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "TemperatureDescription",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Humidity",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "RecordedTime",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "DeviceData"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSynapseAnalyticsConnection')]"
+			]
 		}
 	]
 }

@@ -5,7 +5,13 @@
 		"factoryName": {
 			"value": "DLMaheshdatafactory"
 		},
+		"AzurePreProcessedBlobConnection_connectionString": {
+			"value": ""
+		},
 		"AzureSqlDatabase1_connectionString": {
+			"value": ""
+		},
+		"AzureSynapseAnalyticsConnection_connectionString": {
 			"value": ""
 		},
 		"DLDFKeyVault_properties_typeProperties_baseUrl": {

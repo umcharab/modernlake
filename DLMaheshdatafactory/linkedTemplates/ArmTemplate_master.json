@@ -7,9 +7,17 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "DLMaheshdatafactory"
 		},
+		"AzurePreProcessedBlobConnection_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzurePreProcessedBlobConnection'"
+		},
 		"AzureSqlDatabase1_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'AzureSqlDatabase1'"
+		},
+		"AzureSynapseAnalyticsConnection_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureSynapseAnalyticsConnection'"
 		},
 		"DLDFKeyVault_properties_typeProperties_baseUrl": {
 			"type": "string",
@@ -42,8 +50,14 @@
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
 					},
+					"AzurePreProcessedBlobConnection_connectionString": {
+						"value": "[parameters('AzurePreProcessedBlobConnection_connectionString')]"
+					},
 					"AzureSqlDatabase1_connectionString": {
 						"value": "[parameters('AzureSqlDatabase1_connectionString')]"
+					},
+					"AzureSynapseAnalyticsConnection_connectionString": {
+						"value": "[parameters('AzureSynapseAnalyticsConnection_connectionString')]"
 					},
 					"DLDFKeyVault_properties_typeProperties_baseUrl": {
 						"value": "[parameters('DLDFKeyVault_properties_typeProperties_baseUrl')]"

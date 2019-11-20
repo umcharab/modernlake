@@ -6,286 +6,12 @@
 			"type": "string",
 			"metadata": "Data Factory name",
 			"defaultValue": "DLMaheshdatafactory"
-		},
-		"AzurePreProcessedBlobConnection_connectionString": {
-			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'AzurePreProcessedBlobConnection'"
-		},
-		"AzureSqlDatabase1_connectionString": {
-			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'AzureSqlDatabase1'"
-		},
-		"AzureSynapseAnalyticsConnection_connectionString": {
-			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'AzureSynapseAnalyticsConnection'"
-		},
-		"DLDFKeyVault_properties_typeProperties_baseUrl": {
-			"type": "string",
-			"defaultValue": "https://dlmaheshkeyvault.vault.azure.net/"
 		}
 	},
 	"variables": {
 		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
 	},
 	"resources": [
-		{
-			"name": "[concat(parameters('factoryName'), '/AzurePreProcessedBlobConnection')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureBlobStorage",
-				"typeProperties": {
-					"connectionString": "[parameters('AzurePreProcessedBlobConnection_connectionString')]"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/DLDFKeyVault')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureKeyVault",
-				"typeProperties": {
-					"baseUrl": "[parameters('DLDFKeyVault_properties_typeProperties_baseUrl')]"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/AzurePreporcessedBlobDataSet')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "AzurePreProcessedBlobConnection",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"path": {
-						"type": "string"
-					},
-					"name": {
-						"type": "string"
-					}
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobStorageLocation",
-						"fileName": {
-							"value": "@dataset().name",
-							"type": "Expression"
-						},
-						"container": {
-							"value": "@dataset().path",
-							"type": "Expression"
-						}
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/AzurePreProcessedBlobConnection')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/AzureSqlDatabase1')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureSqlDatabase",
-				"typeProperties": {
-					"connectionString": "[parameters('AzureSqlDatabase1_connectionString')]",
-					"password": {
-						"type": "AzureKeyVaultSecret",
-						"store": {
-							"referenceName": "DLDFKeyVault",
-							"type": "LinkedServiceReference"
-						},
-						"secretName": "mahesh"
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/DLDFKeyVault')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/AzureSynapseAnalyticsConnection')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureSqlDW",
-				"typeProperties": {
-					"connectionString": "[parameters('AzureSynapseAnalyticsConnection_connectionString')]",
-					"password": {
-						"type": "AzureKeyVaultSecret",
-						"store": {
-							"referenceName": "DLDFKeyVault",
-							"type": "LinkedServiceReference"
-						},
-						"secretName": "mahesh"
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/DLDFKeyVault')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ProcessableBlobDataSet')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "AzureSqlDatabase1",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [
-					{
-						"name": "RecordId",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "RecordDate",
-						"type": "datetime",
-						"precision": 23,
-						"scale": 3
-					},
-					{
-						"name": "BlobId",
-						"type": "nvarchar"
-					},
-					{
-						"name": "BlobName",
-						"type": "nvarchar"
-					},
-					{
-						"name": "DisplayName",
-						"type": "nvarchar"
-					},
-					{
-						"name": "Path",
-						"type": "nvarchar"
-					},
-					{
-						"name": "LastModified",
-						"type": "datetime",
-						"precision": 23,
-						"scale": 3
-					},
-					{
-						"name": "Size",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "MediaType",
-						"type": "nvarchar"
-					},
-					{
-						"name": "IsFolder",
-						"type": "bit"
-					},
-					{
-						"name": "ETag",
-						"type": "nvarchar"
-					},
-					{
-						"name": "FileLocator",
-						"type": "nvarchar"
-					},
-					{
-						"name": "ProcessStatus",
-						"type": "nvarchar"
-					},
-					{
-						"name": "DLSTargetLocation",
-						"type": "nvarchar"
-					}
-				],
-				"typeProperties": {
-					"schema": "dbo",
-					"table": "BlobMetadata"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase1')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/AzureSynapseAnalyticsDataset')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "AzureSynapseAnalyticsConnection",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlDWTable",
-				"schema": [
-					{
-						"name": "RecordID",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "Region",
-						"type": "nvarchar"
-					},
-					{
-						"name": "Plant",
-						"type": "nvarchar"
-					},
-					{
-						"name": "DeviceId",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "Temperature",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "TemperatureDescription",
-						"type": "nvarchar"
-					},
-					{
-						"name": "Humidity",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "RecordedTime",
-						"type": "datetime",
-						"precision": 23,
-						"scale": 3
-					}
-				],
-				"typeProperties": {
-					"schema": "dbo",
-					"table": "DeviceData"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/AzureSynapseAnalyticsConnection')]"
-			]
-		},
 		{
 			"name": "[concat(parameters('factoryName'), '/Process Blobs')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
@@ -311,8 +37,7 @@
 							},
 							"dataset": {
 								"referenceName": "ProcessableBlobDataSet",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							},
 							"firstRowOnly": false
 						}
@@ -428,7 +153,6 @@
 											"type": "TabularTranslator",
 											"mappings": [
 												{
-													"source": {},
 													"sink": {
 														"name": "RecordID",
 														"type": "Int32"
@@ -526,8 +250,7 @@
 									"outputs": [
 										{
 											"referenceName": "AzureSynapseAnalyticsDataset",
-											"type": "DatasetReference",
-											"parameters": {}
+											"type": "DatasetReference"
 										}
 									]
 								}
@@ -553,6 +276,186 @@
 				"[concat(variables('factoryId'), '/datasets/AzurePreporcessedBlobDataSet')]",
 				"[concat(variables('factoryId'), '/datasets/AzureSynapseAnalyticsDataset')]"
 			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzurePreporcessedBlobDataSet')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzurePreProcessedBlobConnection",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"path": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().name",
+							"type": "Expression"
+						},
+						"container": {
+							"value": "@dataset().path",
+							"type": "Expression"
+						}
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ProcessableBlobDataSet')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "RecordId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "RecordDate",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "BlobId",
+						"type": "nvarchar"
+					},
+					{
+						"name": "BlobName",
+						"type": "nvarchar"
+					},
+					{
+						"name": "DisplayName",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Path",
+						"type": "nvarchar"
+					},
+					{
+						"name": "LastModified",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "Size",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "MediaType",
+						"type": "nvarchar"
+					},
+					{
+						"name": "IsFolder",
+						"type": "bit"
+					},
+					{
+						"name": "ETag",
+						"type": "nvarchar"
+					},
+					{
+						"name": "FileLocator",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ProcessStatus",
+						"type": "nvarchar"
+					},
+					{
+						"name": "DLSTargetLocation",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "BlobMetadata"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSynapseAnalyticsDataset')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSynapseAnalyticsConnection",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [
+					{
+						"name": "RecordID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Region",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Plant",
+						"type": "nvarchar"
+					},
+					{
+						"name": "DeviceId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Temperature",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "TemperatureDescription",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Humidity",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "RecordedTime",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "DeviceData"
+				}
+			},
+			"dependsOn": []
 		}
 	]
 }
